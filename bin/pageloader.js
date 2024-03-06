@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { PageLoader } from '../src/pageloader.js';
+import pageLoader from '../index.js';
 
 const program = new Command();
 
@@ -12,8 +12,7 @@ program
   .arguments('<link>')
   .action((link) => {
     const options = program.opts();
-    const loader = new PageLoader(link, options.output);
-    loader.downloadPage();
+    pageLoader(link, options.output);
   });
 
 program.parse(process.argv);
