@@ -104,10 +104,9 @@ export const convertLinkToFileName = (link) => {
 };
 
 export class PageLoader {
-  constructor(link, outputPath, isFile, cb = () => {}) {
+  constructor(link, outputPath, cb = () => {}) {
     this.link = link;
     this.outputPath = outputPath;
-    this.isFile = isFile;
     this.cb = cb;
     this.logs = new Logs(process.cwd());
   }
@@ -133,7 +132,7 @@ export class PageLoader {
   }
 
   readHTML() {
-    const htmlPromise = this.isFile ? fsp.readFile(this.link, 'utf-8') : axios.get(this.link).then((res) => res.data);
+    const htmlPromise = axios.get(this.link).then((res) => res.data);
     this.htmlPromise = htmlPromise;
     return htmlPromise;
   }

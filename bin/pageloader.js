@@ -12,7 +12,7 @@ program
   .arguments('<link>')
   .action((link) => {
     const options = program.opts();
-    const loader = new PageLoader(link, options.output, false);
+    const loader = new PageLoader(link, options.output);
     loader.downloadPage();
   });
 
