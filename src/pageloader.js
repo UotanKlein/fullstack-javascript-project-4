@@ -93,11 +93,6 @@ const getAbsolute = (url, baseUrl) => {
   }
 };
 
-// function isUrl(href) {
-//   const regex = /^(https?:\/\/)/;
-//   return regex.test(href);
-// }
-
 export const convertLinkToFileName = (link) => {
   const fileName = link.split('?')[0];
   return fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
@@ -150,6 +145,7 @@ export class PageLoader {
             const contentType = response.headers['content-type'];
             console.log(contentType);
             const extension = getExtensionByContentType(contentType);
+            ctx.extension = extension
 
             return fsp.writeFile(`${savePath}.${extension}`, response.data);
           })
@@ -190,6 +186,7 @@ export class PageLoader {
           .then((response) => {
             const contentType = response.headers['content-type'];
             const extension = getExtensionByContentType(contentType);
+            ctx.extension = extension;
 
             return pipelinePromise(response.data, fs.createWriteStream(`${imagePath}.${extension}`));
           })
@@ -238,14 +235,17 @@ export class PageLoader {
           const fileName = `${convertLinkToFileName(splitUrl.join('.'))}`;
           const filePath = path.join(this.contentPath, fileName);
 
-          $(element).attr(attributeName, filePath);
-
           let promise;
           if (resourceType === 'image') {
             promise = this.downloadAndSaveImage(pathNameUrl, filePath);
           } else {
             promise = this.downloadAndSave(pathNameUrl, filePath);
           }
+
+          promise.then((ctx) => {
+            $(element).attr(attributeName, `${filePath}.${ctx.extension}`);
+            return ctx;
+          })
 
           contentPromises.push(promise);
         };
@@ -267,7 +267,7 @@ export class PageLoader {
       });
   }
 
-  downloadPage() {
+  async downloadPage() {
     this.logs.addLog(`The page ${this.link} has started loading.`);
 
     const convertLink = convertLinkToFileName(this.link);
@@ -322,7 +322,7 @@ export class PageLoader {
       renderer: 'default',
     });
 
-    tasks.run().catch((err) => {
+    return tasks.run().catch((err) => {
       console.error(err);
       process.exit(1);
     });
