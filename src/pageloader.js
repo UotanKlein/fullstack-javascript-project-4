@@ -20,6 +20,48 @@ process.on('unhandledRejection', (error) => {
   process.exit(1);
 });
 
+const getExtensionByContentType = (contentType) => {
+  const mimeType = contentType.split(';')[0];
+
+  const mappings = {
+    'text/html': 'html',
+    'text/css': 'css',
+    'application/javascript': 'js',
+    'text/javascript': 'js',
+    'application/json': 'json',
+    'application/xml': 'xml',
+    'text/xml': 'xml',
+    'text/plain': 'txt',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/svg+xml': 'svg',
+    'image/webp': 'webp',
+    'image/x-icon': 'ico',
+    'image/vnd.microsoft.icon': 'ico',
+    'video/mp4': 'mp4',
+    'video/webm': 'webm',
+    'video/ogg': 'ogv',
+    'audio/mpeg': 'mp3',
+    'audio/ogg': 'ogg',
+    'audio/wav': 'wav',
+    'audio/webm': 'webm',
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+    'application/vnd.ms-powerpoint': 'ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'application/zip': 'zip',
+    'application/vnd.rar': 'rar',
+    'application/x-7z-compressed': '7z',
+    'application/octet-stream': 'bin',
+  };
+
+  return mappings[mimeType] || 'bin';
+};
+
 const compareDomainAndSubdomains = (url1, url2) => {
   const getRootDomain = (url) => {
     const { hostname } = new URL(url);
@@ -60,8 +102,6 @@ export class PageLoader {
     this.outputPath = outputPath;
     this.isFile = isFile;
     this.cb = cb;
-    this.htmlPath = '';
-    this.contentPath = '';
     this.logs = new Logs(process.cwd());
   }
 
@@ -94,14 +134,27 @@ export class PageLoader {
   downloadAndSave(url, savePath) {
     const tasks = new Listr([
       {
-        title: url,
-        task: () => axios.get(url).then((response) => {
-          if (response.status !== 200) {
-            throw new Error(`Failed to load page, status code: ${response.status}`);
-          }
-          this.logs.addLog(`The content was uploaded successfully: '${url}'`);
-          return fsp.writeFile(savePath, response.data);
-        }),
+        title: `Downloading Web Asset from ${url}`,
+        task: (ctx, task) => axios.get(url)
+          .then((response) => {
+            if (response.status !== 200) {
+              throw new Error(`Failed to load web asset. Status code: ${response.status}`);
+            }
+
+            const contentType = response.headers['content-type'];
+            console.log(contentType);
+            const extension = getExtensionByContentType(contentType);
+
+            return fsp.writeFile(`${savePath}.${extension}`, response.data);
+          })
+          .then(() => {
+            task.title = `Web asset downloaded successfully from ${url}`;
+            this.logs.addLog(`Web asset was uploaded successfully from '${url}'`);
+          })
+          .catch((error) => {
+            this.logs.addLog(`An error occurred while uploading the web asset from '${url}' Error: ${error.message}`);
+            throw new Error(`Failed to download web asset from ${url}. Error: ${error.message}`);
+          }),
       },
     ], {
       rendererOptions: {
@@ -114,7 +167,7 @@ export class PageLoader {
     });
 
     return tasks.run().catch((error) => {
-      console.error(error);
+      console.error(error.message);
       process.exit(1);
     });
   }
@@ -131,19 +184,23 @@ export class PageLoader {
 
     const tasks = new Listr([
       {
-        title: imageUrl,
-        task: () => this.ensureDirExists(dirPath)
+        title: `Downloading image from ${imageUrl}`,
+        task: (ctx, task) => this.ensureDirExists(dirPath)
           .then(() => axios.get(imageUrl, { responseType: 'stream' }))
-          .then((response) => pipelinePromise(
-            response.data,
-            fs.createWriteStream(imagePath),
-          ))
+          .then((response) => {
+            const contentType = response.headers['content-type'];
+            const extension = getExtensionByContentType(contentType);
+
+            return pipelinePromise(response.data, fs.createWriteStream(`${imagePath}.${extension}`));
+          })
           .then(() => {
-            this.logs.addLog(`The image was uploaded successfully: '${imageUrl}'`);
+            this.logs.addLog(`Image was uploaded successfully from '${imageUrl}'`);
+            task.title = `Image downloaded successfully from ${imageUrl}`;
           })
           .catch((error) => {
-            this.logs.addLog(`An error occurred while uploading the image: '${imageUrl}' Error: ${error.message}`);
-            console.error(`Ошибка при сохранении изображения: ${error.message}`);
+            this.logs.addLog(`An error occurred while uploading the image from '${imageUrl}' Error: ${error.message}`);
+            task.title = `Failed to download image from ${imageUrl}`;
+            throw new Error(error.message);
           }),
       },
     ], {
@@ -157,7 +214,7 @@ export class PageLoader {
     });
 
     return tasks.run().catch((error) => {
-      console.error(error);
+      console.error(error.message);
       process.exit(1);
     });
   }
@@ -175,8 +232,8 @@ export class PageLoader {
           if (!url || !compareDomainAndSubdomains(this.link, pathNameUrl) || (resourceType === 'style' && $(element).attr('rel') !== 'stylesheet')) return;
 
           const splitUrl = pathNameUrl.split('.');
-          const extension = splitUrl.pop();
-          const fileName = `${convertLinkToFileName(splitUrl.join('.'))}.${extension}`;
+          splitUrl.pop();
+          const fileName = `${convertLinkToFileName(splitUrl.join('.'))}`;
           const filePath = path.join(this.contentPath, fileName);
 
           $(element).attr(attributeName, filePath);
@@ -212,11 +269,8 @@ export class PageLoader {
     this.logs.addLog(`The page ${this.link} has started loading.`);
 
     const convertLink = convertLinkToFileName(this.link);
-    const fullPathHTML = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
-    const fullPathContent = `${convertLink}_files`;
-
-    this.htmlPath = fullPathHTML;
-    this.contentPath = fullPathContent;
+    this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
+    this.contentPath = `${convertLink}_files`;
 
     this.requestInterceptor = axios.interceptors.request.use((request) => {
       this.logs.addLog(`Request: ${request.method.toUpperCase()} ${request.url}`);
@@ -236,12 +290,23 @@ export class PageLoader {
 
     const tasks = new Listr([
       {
-        title: `The page is saved in: '${this.htmlPath}'`,
-        task: () => this.readHTML()
-          .then(() => this.downloadAndSave(this.link, fullPathHTML))
+        title: `Saving a page from '${this.link}'`,
+        task: (ctx, task) => this.readHTML()
           .then(() => this.downloadContent())
-          .then(() => this.afterDownloadedPage())
-          .catch((error) => console.error('An error occurred during the page download process:', error)),
+          .then(() => {
+            task.title = `Page downloaded successfully from ${this.link}`;
+
+            this.logs.addLog(`Page was successfully downloaded into '${this.htmlPath}'`);
+
+            axios.interceptors.request.eject(this.requestInterceptor);
+            axios.interceptors.response.eject(this.responseInterceptor);
+
+            return this.logs.saveLogs();
+          })
+          .catch((error) => {
+            task.title = `Failed to download page from ${this.link}`;
+            console.error('An error occurred during the page download process:', error);
+          }),
       },
     ], {
       rendererOptions: {
@@ -257,15 +322,6 @@ export class PageLoader {
       console.error(err);
       process.exit(1);
     });
-  }
-
-  afterDownloadedPage() {
-    this.logs.addLog(`Page was successfully downloaded into '${this.htmlPath}'`);
-
-    axios.interceptors.request.eject(this.requestInterceptor);
-    axios.interceptors.response.eject(this.responseInterceptor);
-
-    return this.logs.saveLogs();
   }
 
   async saveHTML(content) {
