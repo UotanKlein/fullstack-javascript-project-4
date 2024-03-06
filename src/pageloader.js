@@ -4,11 +4,8 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import cheerio from 'cheerio';
 import path from 'path';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
 import Logs from './logs.js';
-
-const pipelinePromise = promisify(pipeline);
+import funcs from './func.js';
 
 process.on('uncaughtException', (error) => {
   console.error(`Uncaught exception: ${error.message}`);
@@ -19,84 +16,6 @@ process.on('unhandledRejection', (error) => {
   console.error(`Unhandled rejection: ${error.message}`);
   process.exit(1);
 });
-
-const getExtensionByContentType = (contentType) => {
-  const mimeType = contentType.split(';')[0];
-
-  const mappings = {
-    'text/html': 'html',
-    'text/css': 'css',
-    'application/javascript': 'js',
-    'text/javascript': 'js',
-    'application/json': 'json',
-    'application/xml': 'xml',
-    'text/xml': 'xml',
-    'text/plain': 'txt',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/gif': 'gif',
-    'image/svg+xml': 'svg',
-    'image/webp': 'webp',
-    'image/x-icon': 'ico',
-    'image/vnd.microsoft.icon': 'ico',
-    'video/mp4': 'mp4',
-    'video/webm': 'webm',
-    'video/ogg': 'ogv',
-    'audio/mpeg': 'mp3',
-    'audio/ogg': 'ogg',
-    'audio/wav': 'wav',
-    'audio/webm': 'webm',
-    'application/pdf': 'pdf',
-    'application/msword': 'doc',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-    'application/vnd.ms-excel': 'xls',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-    'application/vnd.ms-powerpoint': 'ppt',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
-    'application/zip': 'zip',
-    'application/vnd.rar': 'rar',
-    'application/x-7z-compressed': '7z',
-    'application/octet-stream': 'bin',
-  };
-
-  return mappings[mimeType] || 'bin';
-};
-
-const compareDomainAndSubdomains = (url1, url2) => {
-  const getRootDomain = (url) => {
-    const { hostname } = new URL(url);
-    const hostnameParts = hostname.split('.').reverse();
-
-    if (hostnameParts.length >= 2) {
-      return `${hostnameParts[1]}.${hostnameParts[0]}`;
-    }
-    return hostname;
-  };
-
-  return getRootDomain(url1) === getRootDomain(url2);
-};
-
-const ensureDirExists = async (dirPath) => Promise.resolve()
-  .then(() => fsp.mkdir(dirPath, { recursive: true }))
-  .catch((error) => {
-    console.error(`Failed to create directory: ${error.message}`);
-    process.exit(1);
-  });
-
-const getAbsolute = (url, baseUrl) => {
-  try {
-    const fullUrl = new URL(url, baseUrl);
-    return fullUrl.href;
-  } catch (error) {
-    console.error(`Ошибка при обработке URL: ${error}`);
-    return url;
-  }
-};
-
-export const convertLinkToFileName = (link) => {
-  const fileName = link.split('?')[0];
-  return fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
-};
 
 export class PageLoader {
   constructor(link, outputPath, cb = () => {}) {
@@ -144,7 +63,7 @@ export class PageLoader {
 
             const contentType = response.headers['content-type'];
             console.log(contentType);
-            const extension = getExtensionByContentType(contentType);
+            const extension = funcs.getExtensionByContentType(contentType);
             ctx.extension = extension
 
             return fsp.writeFile(`${savePath}.${extension}`, response.data);
@@ -181,14 +100,14 @@ export class PageLoader {
     const tasks = new Listr([
       {
         title: `Downloading image from ${imageUrl}`,
-        task: (ctx, task) => ensureDirExists(dirPath)
+        task: (ctx, task) => funcs.ensureDirExists(dirPath)
           .then(() => axios.get(imageUrl, { responseType: 'stream' }))
           .then((response) => {
             const contentType = response.headers['content-type'];
-            const extension = getExtensionByContentType(contentType);
+            const extension = funcs.getExtensionByContentType(contentType);
             ctx.extension = extension;
 
-            return pipelinePromise(response.data, fs.createWriteStream(`${imagePath}.${extension}`));
+            return funcs.pipelinePromise(response.data, fs.createWriteStream(`${imagePath}.${extension}`));
           })
           .then(() => {
             this.logs.addLog(`Image was uploaded successfully from '${imageUrl}'`);
@@ -226,13 +145,13 @@ export class PageLoader {
 
         const processElement = (element, attributeName, resourceType = 'default') => {
           const url = $(element).attr(attributeName);
-          const pathNameUrl = getAbsolute(url, this.link);
+          const pathNameUrl = funcs.getAbsolute(url, this.link);
 
-          if (!url || !compareDomainAndSubdomains(this.link, pathNameUrl) || (resourceType === 'style' && $(element).attr('rel') !== 'stylesheet')) return;
+          if (!url || !funcs.compareDomainAndSubdomains(this.link, pathNameUrl) || (resourceType === 'style' && $(element).attr('rel') !== 'stylesheet')) return;
 
           const splitUrl = pathNameUrl.split('.');
           splitUrl.pop();
-          const fileName = `${convertLinkToFileName(splitUrl.join('.'))}`;
+          const fileName = `${funcs.convertLinkToFileName(splitUrl.join('.'))}`;
           const filePath = path.join(this.contentPath, fileName);
 
           let promise;
@@ -270,7 +189,7 @@ export class PageLoader {
   async downloadPage() {
     this.logs.addLog(`The page ${this.link} has started loading.`);
 
-    const convertLink = convertLinkToFileName(this.link);
+    const convertLink = funcs.convertLinkToFileName(this.link);
     this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
     this.contentPath = `${convertLink}_files`;
 
