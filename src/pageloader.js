@@ -76,6 +76,13 @@ const compareDomainAndSubdomains = (url1, url2) => {
   return getRootDomain(url1) === getRootDomain(url2);
 };
 
+const ensureDirExists = async (dirPath) => Promise.resolve()
+  .then(() => fsp.mkdir(dirPath, { recursive: true }))
+  .catch((error) => {
+    console.error(`Failed to create directory: ${error.message}`);
+    process.exit(1);
+  });
+
 const getAbsolute = (url, baseUrl) => {
   try {
     const fullUrl = new URL(url, baseUrl);
@@ -131,7 +138,7 @@ export class PageLoader {
     return htmlPromise;
   }
 
-  downloadAndSave(url, savePath) {
+  async downloadAndSave(url, savePath) {
     const tasks = new Listr([
       {
         title: `Downloading Web Asset from ${url}`,
@@ -148,6 +155,7 @@ export class PageLoader {
             return fsp.writeFile(`${savePath}.${extension}`, response.data);
           })
           .then(() => {
+            // eslint-disable-next-line no-param-reassign
             task.title = `Web asset downloaded successfully from ${url}`;
             this.logs.addLog(`Web asset was uploaded successfully from '${url}'`);
           })
@@ -172,20 +180,13 @@ export class PageLoader {
     });
   }
 
-  ensureDirExists(dirPath) {
-    return Promise.resolve().then(() => fsp.mkdir(dirPath, { recursive: true })).catch((error) => {
-      console.error(`Failed to create directory: ${error.message}`);
-      process.exit(1);
-    });
-  }
-
-  downloadAndSaveImage(imageUrl, imagePath) {
+  async downloadAndSaveImage(imageUrl, imagePath) {
     const dirPath = path.dirname(imagePath);
 
     const tasks = new Listr([
       {
         title: `Downloading image from ${imageUrl}`,
-        task: (ctx, task) => this.ensureDirExists(dirPath)
+        task: (ctx, task) => ensureDirExists(dirPath)
           .then(() => axios.get(imageUrl, { responseType: 'stream' }))
           .then((response) => {
             const contentType = response.headers['content-type'];
@@ -195,10 +196,12 @@ export class PageLoader {
           })
           .then(() => {
             this.logs.addLog(`Image was uploaded successfully from '${imageUrl}'`);
+            // eslint-disable-next-line no-param-reassign
             task.title = `Image downloaded successfully from ${imageUrl}`;
           })
           .catch((error) => {
             this.logs.addLog(`An error occurred while uploading the image from '${imageUrl}' Error: ${error.message}`);
+            // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download image from ${imageUrl}`;
             throw new Error(error.message);
           }),
@@ -219,7 +222,7 @@ export class PageLoader {
     });
   }
 
-  downloadContent() {
+  async downloadContent() {
     return this.htmlPromise
       .then((content) => {
         const $ = cheerio.load(content);
@@ -294,6 +297,7 @@ export class PageLoader {
         task: (ctx, task) => this.readHTML()
           .then(() => this.downloadContent())
           .then(() => {
+            // eslint-disable-next-line no-param-reassign
             task.title = `Page downloaded successfully from ${this.link}`;
 
             this.logs.addLog(`Page was successfully downloaded into '${this.htmlPath}'`);
@@ -304,6 +308,7 @@ export class PageLoader {
             return this.logs.saveLogs();
           })
           .catch((error) => {
+            // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download page from ${this.link}`;
             console.error('An error occurred during the page download process:', error);
           }),
@@ -328,8 +333,8 @@ export class PageLoader {
     try {
       await fsp.writeFile(this.htmlPath, content);
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
-    } catch (err) {
-      this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${err.message}`);
+    } catch (error) {
+      this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
       console.error(`Failed to write file: ${error.message}`);
       process.exit(1);
     }
