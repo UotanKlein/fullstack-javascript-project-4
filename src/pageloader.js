@@ -72,6 +72,7 @@ export default class PageLoader {
 
     return tasks.run().catch((error) => {
       console.error(error.message);
+      throw error;
     });
   }
 
@@ -114,6 +115,7 @@ export default class PageLoader {
 
     return tasks.run().catch((error) => {
       console.error(error.message);
+      throw error;
     });
   }
 
@@ -163,6 +165,7 @@ export default class PageLoader {
       .catch((error) => {
         this.logs.addLog(`An error occurred while uploading the page content: '${this.link}' Error: ${error}`);
         this.cb(error);
+        throw error;
       });
   }
 
@@ -211,6 +214,7 @@ export default class PageLoader {
             // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download page from ${this.link}`;
             console.error('An error occurred during the page download process:', error);
+            throw error;
           }),
       },
     ], {
@@ -225,6 +229,7 @@ export default class PageLoader {
 
     return tasks.run().catch((err) => {
       console.error(err);
+      throw error;
     });
   }
 
@@ -239,6 +244,7 @@ export default class PageLoader {
     } catch (error) {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
       console.error(`Failed to write file: ${error.message}`);
+      throw error;
     }
   }
 }
