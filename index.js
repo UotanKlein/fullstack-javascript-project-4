@@ -1,6 +1,8 @@
 import PageLoader from './src/pageloader.js';
+import path from 'path';
 
-export default (link, output) => {
+export default async (link, output) => {
   const loader = new PageLoader(link, output);
-  return loader.downloadPage();
+  loader.downloadPage();
+  return path.normalize(loader.htmlPath);
 };

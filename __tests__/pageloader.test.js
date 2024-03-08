@@ -5,6 +5,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'url';
 import PageLoader from '../src/pageloader.js';
+import pageLoader from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,6 +69,7 @@ describe('Page Loader Tests', () => {
 
   test('HTML', async () => {
     const contentPath = path.join(tempDir, 'example-com.html');
+    expect(loader.htmlPath).toEqual(contentPath);
 
     await expect(fsp.access(contentPath)).resolves.toBeUndefined();
 

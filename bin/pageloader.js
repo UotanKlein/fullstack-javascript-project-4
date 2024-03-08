@@ -12,7 +12,9 @@ program
   .arguments('<link>')
   .action((link) => {
     const options = program.opts();
-    pageLoader(link, options.output);
+    const filePath = pageLoader(link, options.output)
+    console.log(filePath);
+    return filePath;
   });
 
 program.parse(process.argv);
