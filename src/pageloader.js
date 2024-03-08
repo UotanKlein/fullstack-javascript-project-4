@@ -9,16 +9,23 @@ import Logs from './logs.js';
 import funcs from './func.js';
 
 export default class PageLoader {
-  constructor(link, outputPath, cb = (error) => {
-    throw error;
-}) {
+  constructor(link, outputPath, cb = (error, exit = false) => {
+    if (error) {
+      console.error(error.message);
+      if (exit) {
+        process.exit(1);
+      } else {
+        throw error;
+      }
+    }
+  }) {
     this.link = link;
     this.outputPath = outputPath;
     this.cb = cb;
     this.logs = new Logs(outputPath);
 
     if (!funcs.isValidUrl(this.link)) {
-      throw new Error(`URL '${this.link}' is invalid.`);
+      throw new Error('Invalid link');
     }
   }
 
@@ -27,30 +34,32 @@ export default class PageLoader {
   }
 
   readHTML() {
-    const htmlPromise = axios.get(this.link).then((res) => res.data).catch((error) => {
-      throw error;
-    });
+    const htmlPromise = axios.get(this.link).then((res) => {
+      this.cb(null);
+      return res.data;
+    })
+      .catch((error) => {
+        this.cb(error);
+      });
     this.htmlPromise = htmlPromise;
     return htmlPromise;
   }
 
-  async downloadAndSave(url, savePath) {
+  downloadAndSave(url, savePath) {
     const tasks = new Listr([
       {
         title: `Downloading Web Asset from ${url}`,
         task: (ctx, task) => axios.get(url)
           .then((response) => {
             if (response.status !== 200) {
-              throw new Error(`Failed to load web asset. Status code: ${response.status}`);
+              throw new Error('The response status is not equal to 200');
             }
 
             const contentType = response.headers['content-type'];
             const extension = funcs.getExtensionByContentType(contentType);
             ctx.extension = extension;
 
-            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data).catch((error) => {
-              throw error;
-            });
+            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
           })
           .then(() => {
             // eslint-disable-next-line no-param-reassign
@@ -59,7 +68,7 @@ export default class PageLoader {
           })
           .catch((error) => {
             this.logs.addLog(`An error occurred while uploading the web asset from '${url}' Error: ${error.message}`);
-            throw error;
+            this.cb(error);
           }),
       },
     ], {
@@ -73,12 +82,11 @@ export default class PageLoader {
     });
 
     return tasks.run().catch((error) => {
-      console.error(error.message);
-      throw error;
+      this.cb(error);
     });
   }
 
-  async downloadAndSaveImage(imageUrl, imagePath) {
+  downloadAndSaveImage(imageUrl, imagePath) {
     const dirPath = path.dirname(imagePath);
 
     const tasks = new Listr([
@@ -102,7 +110,7 @@ export default class PageLoader {
             this.logs.addLog(`An error occurred while uploading the image from '${imageUrl}' Error: ${error.message}`);
             // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download image from ${imageUrl}`;
-            throw new Error(error.message);
+            this.cb(error);
           }),
       },
     ], {
@@ -116,20 +124,17 @@ export default class PageLoader {
     });
 
     return tasks.run().catch((error) => {
-      console.error(error.message);
-      throw error;
+      this.cb(error);
     });
   }
 
-  async downloadContent() {
+  downloadContent() {
     return this.htmlPromise
       .then((content) => {
         const $ = cheerio.load(content);
         const contentPromises = [];
 
-        fsp.mkdir(path.join(this.outputPath, this.contentPath), { recursive: true }).catch((error) => {
-          throw error;
-        });
+        fsp.mkdir(path.join(this.outputPath, this.contentPath), { recursive: true });
 
         const processElement = (element, attributeName, resourceType = 'default') => {
           const url = $(element).attr(attributeName);
@@ -151,12 +156,9 @@ export default class PageLoader {
 
           promise.then((ctx) => {
             $(element).attr(attributeName, `${filePath}.${ctx.extension}`);
-            this.cb(null);
             return ctx;
           }).catch((error) => {
-            this.logs.addLog(`An error occurred during the page download process: '${this.link}' Error: ${error}`);
             this.cb(error);
-            throw error;
           });
 
           contentPromises.push(promise);
@@ -167,20 +169,20 @@ export default class PageLoader {
         $('link').each((index, element) => processElement(element, 'href', 'style'));
 
         return Promise.all(contentPromises).then(() => $.html()).catch((error) => {
-          throw error;
+          this.cb(error);
         });
       })
       .then((updatedHtml) => {
         this.logs.addLog(`The page content was saved successfully: '${this.link}'`);
-        this.saveHTML(updatedHtml);
+        return this.saveHTML(updatedHtml);
       })
       .catch((error) => {
         this.logs.addLog(`An error occurred while uploading the page content: '${this.link}' Error: ${error}`);
-        throw error;
+        this.cb(error);
       });
   }
 
-  async downloadPage() {
+  downloadPage() {
     this.logs.addLog(`The page ${this.link} has started loading.`);
 
     const convertLink = funcs.convertLinkToFileName(this.link);
@@ -205,25 +207,30 @@ export default class PageLoader {
 
     const tasks = new Listr([
       {
-        title: `Saving a page from '${this.link}'`,
+        title: 'Downloading page...',
         task: (ctx, task) => this.readHTML()
           .then(() => this.downloadContent())
           .then(() => {
             // eslint-disable-next-line no-param-reassign
             task.title = `Page downloaded successfully from ${this.link}`;
-
             this.logs.addLog(`Page was successfully downloaded into '${this.htmlPath}'`);
 
             axios.interceptors.request.eject(this.requestInterceptor);
             axios.interceptors.response.eject(this.responseInterceptor);
+
+            ctx.htmlPath = this.htmlPath;
+
+            this.cb(null);
 
             return this.logs.saveLogs();
           })
           .catch((error) => {
             // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download page from ${this.link}`;
-            console.error('An error occurred during the page download process:', error);
-            throw error;
+
+            this.logs.addLog(`Failed to download page from ${this.link}`);
+
+            this.cb(error);
           }),
       },
     ], {
@@ -237,23 +244,21 @@ export default class PageLoader {
     });
 
     return tasks.run().catch((error) => {
-      console.error(error);
-      throw error;
+      this.cb(error);
     });
   }
 
-  async saveHTML(content) {
-    try {
-      const formattedHtml = await prettier.format(content, {
-        parser: 'html',
-      });
-      const normalizedHtml = formattedHtml.replace(/\\/g, '/');
-      await fsp.writeFile(this.htmlPath, normalizedHtml);
+  saveHTML(content) {
+    return prettier.format(content, {
+      parser: 'html',
+    }).then((convertedHtml) => {
+      const normalizedHtml = convertedHtml.replace(/\\/g, '/');
+      fsp.writeFile(this.htmlPath, normalizedHtml);
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
-    } catch (error) {
+      return normalizedHtml;
+    }).catch((error) => {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
-      console.error(`Failed to write file: ${error.message}`);
-      throw error;
-    }
+      this.cb(error);
+    });
   }
 }

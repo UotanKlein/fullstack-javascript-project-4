@@ -62,11 +62,10 @@ funcs.compareDomainAndSubdomains = (url1, url2) => {
   return getRootDomain(url1) === getRootDomain(url2);
 };
 
-funcs.ensureDirExists = async (dirPath) => Promise.resolve()
+funcs.ensureDirExists = (dirPath) => Promise.resolve()
   .then(() => fsp.mkdir(dirPath, { recursive: true }))
   .catch((error) => {
-    console.error(`Failed to create directory: ${error.message}`);
-    throw error;
+    this.cb(error);
   });
 
 funcs.getAbsolute = (url, baseUrl) => {
@@ -86,11 +85,12 @@ funcs.convertLinkToFileName = (link) => {
 
 funcs.isValidUrl = (string) => {
   try {
+    // eslint-disable-next-line no-new
     new URL(string);
     return true;
   } catch (error) {
-    throw error;
+    return false;
   }
-}
+};
 
 export default funcs;

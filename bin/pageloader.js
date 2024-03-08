@@ -11,16 +11,14 @@ program
   .option('-o, --output [dir]', 'output dir', process.cwd())
   .arguments('<link>')
   .action((link) => {
-    (async () => {
-      try {
-        const options = program.opts();
-        await pageLoader(link, options.output);
-        console.log(`Page was successfully downloaded into '${options.output}'`);
-      } catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
-      }
-    })();
+    const options = program.opts();
+    pageLoader(link, options.output).then((ctx) => {
+      console.log(`Page was successfully downloaded into '${options.output}'`);
+      console.log(ctx.htmlPath);
+    }).catch((error) => {
+      console.error(error.message);
+      process.exit(1);
+    });
   });
 
 program.parse(process.argv);

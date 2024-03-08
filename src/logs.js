@@ -31,8 +31,7 @@ export default class Logs {
 
     fs.mkdir(logsDir, { recursive: true }, (error) => {
       if (error) {
-        console.error('Error creating the logs directory:', error);
-        throw error;
+        this.cb(error);
       }
     });
 
@@ -48,13 +47,10 @@ export default class Logs {
     return this.logs.reduce((acc, log) => `${acc}\n${log}`, '').slice(1);
   }
 
-  async saveLogs(logName = 'log') {
-    try {
-      await fsp.writeFile(path.join(this.savePath, `${logName}-${getCurrentTimeStringForFile()}.log`), this.toString(), 'utf8');
-    } catch (error) {
-      console.error('Error reading the directory or saving the logs:', error);
-      throw error;
-    }
+  saveLogs(logName = 'log') {
+    fsp.writeFile(path.join(this.savePath, `${logName}-${getCurrentTimeStringForFile()}.log`), this.toString(), 'utf8').catch((error) => {
+      this.cb(error);
+    });
   }
 
   logsClear() {
