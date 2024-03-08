@@ -13,3 +13,6 @@ lint-fix:
 
 coverage:
 	npm run test -- --coverage
+
+dependencies:
+	npm install
