@@ -34,7 +34,7 @@ jobs:
         run: |
           codeclimate-test-reporter format-coverage --input-type lcov coverage/lcov.info | codeclimate-test-reporter upload-coverage
 
-      - name: Run tests
+      - name: Run test
         run: npm test
 
       - name: Generate coverage report
