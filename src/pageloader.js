@@ -10,12 +10,10 @@ import funcs from './func.js';
 
 process.on('uncaughtException', (error) => {
   console.error(`Uncaught exception: ${error.message}`);
-  process.exit(1);
 });
 
 process.on('unhandledRejection', (error) => {
   console.error(`Unhandled rejection: ${error.message}`);
-  process.exit(1);
 });
 
 export default class PageLoader {
@@ -74,7 +72,6 @@ export default class PageLoader {
 
     return tasks.run().catch((error) => {
       console.error(error.message);
-      process.exit(1);
     });
   }
 
@@ -117,7 +114,6 @@ export default class PageLoader {
 
     return tasks.run().catch((error) => {
       console.error(error.message);
-      process.exit(1);
     });
   }
 
@@ -229,7 +225,6 @@ export default class PageLoader {
 
     return tasks.run().catch((err) => {
       console.error(err);
-      process.exit(1);
     });
   }
 
@@ -244,7 +239,6 @@ export default class PageLoader {
     } catch (error) {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
       console.error(`Failed to write file: ${error.message}`);
-      process.exit(1);
     }
   }
 }
