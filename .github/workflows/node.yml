@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install codeclimate-test-reporter
+        run: npm install -g codeclimate-test-reporter
+
       - name: Run CodeClimate Analysis
         run: |
           codeclimate-test-reporter format-coverage --input-type lcov coverage/lcov.info | codeclimate-test-reporter upload-coverage
