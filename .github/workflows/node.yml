@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [16.x]
 
     steps:
       - name: Check-out repository
@@ -23,12 +23,13 @@ jobs:
       
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
+
+      - name: Run CodeClimate Analysis
+        run: |
+          codeclimate-test-reporter format-coverage --input-type lcov coverage/lcov.info | codeclimate-test-reporter upload-coverage
 
       - name: Run tests
         run: npm test
