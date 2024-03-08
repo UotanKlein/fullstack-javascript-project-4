@@ -8,16 +8,10 @@ import prettier from 'prettier';
 import Logs from './logs.js';
 import funcs from './func.js';
 
-process.on('uncaughtException', (error) => {
-  console.error(`Uncaught exception: ${error.message}`);
-});
-
-process.on('unhandledRejection', (error) => {
-  console.error(`Unhandled rejection: ${error.message}`);
-});
-
 export default class PageLoader {
-  constructor(link, outputPath, cb = () => {}) {
+  constructor(link, outputPath, cb = (error) => {
+    throw error;
+}) {
     this.link = link;
     this.outputPath = outputPath;
     this.cb = cb;

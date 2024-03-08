@@ -3,10 +3,9 @@ import path from 'path';
 
 export default async (link, output) => {
   const loader = new PageLoader(link, output);
-  try {
-    await loader.downloadPage();
-  } catch(error) {
-    throw error;
-  }
+  await loader.downloadPage().catch((error) => {
+    console.log('Error')
+    process.exit(1);
+  })
   return path.normalize(loader.htmlPath);
 };
