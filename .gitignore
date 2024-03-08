@@ -2,3 +2,4 @@ node_modules/
 logs/
 *_files
 coverage/
+/*.html
