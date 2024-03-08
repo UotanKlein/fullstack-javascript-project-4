@@ -1,11 +1,15 @@
 test:
 	npm test
 
-install:
+setup:
 	npm ci
+	npm link
 
 lint:
 	npx eslint .
 
 lint-fix:
 	npx eslint --fix .
+
+coverage:
+	npm run test -- --coverage

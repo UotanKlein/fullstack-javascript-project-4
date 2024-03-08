@@ -1,4 +1,4 @@
-node_modules
-logs
-*.html
+node_modules/
+logs/
 *_files
+coverage/

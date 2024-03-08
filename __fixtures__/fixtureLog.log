@@ -1,0 +1,14 @@
+2024-03-08 02:53:57.989: The page http://example.com has started loading.
+2024-03-08 02:53:57.989: Request: GET http://example.com
+2024-03-08 02:53:58.014: Response: 200 http://example.com
+2024-03-08 02:53:58.017: Request: GET http://example.com/assets/test.js
+2024-03-08 02:53:58.017: Request: GET http://example.com/assets/test.css
+2024-03-08 02:53:58.018: Request: GET http://example.com/assets/test.png
+2024-03-08 02:53:58.029: Response: 200 http://example.com/assets/test.png
+2024-03-08 02:53:58.030: Response: 200 http://example.com/assets/test.js
+2024-03-08 02:53:58.030: Response: 200 http://example.com/assets/test.css
+2024-03-08 02:53:58.031: Web asset was uploaded successfully from 'http://example.com/assets/test.js'
+2024-03-08 02:53:58.032: Image was uploaded successfully from 'http://example.com/assets/test.png'
+2024-03-08 02:53:58.033: Web asset was uploaded successfully from 'http://example.com/assets/test.css'
+2024-03-08 02:53:58.034: The page content was saved successfully: 'http://example.com'
+2024-03-08 02:53:58.035: Page was successfully downloaded into 'C:\Users\franc\AppData\Local\Temp\tmp-21604-cHOZ3CGpYjN4\example-com.html'

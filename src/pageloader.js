@@ -4,6 +4,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import cheerio from 'cheerio';
 import path from 'path';
+import prettier from 'prettier';
 import Logs from './logs.js';
 import funcs from './func.js';
 
@@ -17,28 +18,12 @@ process.on('unhandledRejection', (error) => {
   process.exit(1);
 });
 
-export class PageLoader {
+export default class PageLoader {
   constructor(link, outputPath, cb = () => {}) {
     this.link = link;
     this.outputPath = outputPath;
     this.cb = cb;
-    this.logs = new Logs(process.cwd());
-  }
-
-  getLink() {
-    return this.link;
-  }
-
-  getHtmlPath() {
-    return this.htmlPath;
-  }
-
-  getContentPath() {
-    return this.contentPath;
-  }
-
-  getOutputPath() {
-    return this.outputPath;
+    this.logs = new Logs(outputPath);
   }
 
   setCB(cb) {
@@ -62,11 +47,10 @@ export class PageLoader {
             }
 
             const contentType = response.headers['content-type'];
-            console.log(contentType);
             const extension = funcs.getExtensionByContentType(contentType);
-            ctx.extension = extension
+            ctx.extension = extension;
 
-            return fsp.writeFile(`${savePath}.${extension}`, response.data);
+            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
           })
           .then(() => {
             // eslint-disable-next-line no-param-reassign
@@ -100,14 +84,14 @@ export class PageLoader {
     const tasks = new Listr([
       {
         title: `Downloading image from ${imageUrl}`,
-        task: (ctx, task) => funcs.ensureDirExists(dirPath)
+        task: (ctx, task) => funcs.ensureDirExists(path.join(this.outputPath, dirPath))
           .then(() => axios.get(imageUrl, { responseType: 'stream' }))
           .then((response) => {
             const contentType = response.headers['content-type'];
             const extension = funcs.getExtensionByContentType(contentType);
             ctx.extension = extension;
 
-            return funcs.pipelinePromise(response.data, fs.createWriteStream(`${imagePath}.${extension}`));
+            return funcs.pipelinePromise(response.data, fs.createWriteStream(path.join(this.outputPath, `${imagePath}.${extension}`)));
           })
           .then(() => {
             this.logs.addLog(`Image was uploaded successfully from '${imageUrl}'`);
@@ -164,7 +148,7 @@ export class PageLoader {
           promise.then((ctx) => {
             $(element).attr(attributeName, `${filePath}.${ctx.extension}`);
             return ctx;
-          })
+          });
 
           contentPromises.push(promise);
         };
@@ -192,6 +176,8 @@ export class PageLoader {
     const convertLink = funcs.convertLinkToFileName(this.link);
     this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
     this.contentPath = `${convertLink}_files`;
+
+    fsp.mkdir(path.join(this.outputPath, this.contentPath));
 
     this.requestInterceptor = axios.interceptors.request.use((request) => {
       this.logs.addLog(`Request: ${request.method.toUpperCase()} ${request.url}`);
@@ -249,7 +235,10 @@ export class PageLoader {
 
   async saveHTML(content) {
     try {
-      await fsp.writeFile(this.htmlPath, content);
+      const formattedHtml = await prettier.format(content, {
+        parser: 'html',
+      });
+      await fsp.writeFile(this.htmlPath, formattedHtml);
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
     } catch (error) {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
