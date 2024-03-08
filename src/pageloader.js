@@ -177,7 +177,7 @@ export default class PageLoader {
     this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
     this.contentPath = `${convertLink}_files`;
 
-    fsp.mkdir(path.join(this.outputPath, this.contentPath));
+    await fsp.mkdir(path.join(this.outputPath, this.contentPath), { recursive: true });
 
     this.requestInterceptor = axios.interceptors.request.use((request) => {
       this.logs.addLog(`Request: ${request.method.toUpperCase()} ${request.url}`);
@@ -238,7 +238,8 @@ export default class PageLoader {
       const formattedHtml = await prettier.format(content, {
         parser: 'html',
       });
-      await fsp.writeFile(this.htmlPath, formattedHtml);
+      const normalizedHtml = formattedHtml.replace(/\\/g, '/');
+      await fsp.writeFile(this.htmlPath, normalizedHtml);
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
     } catch (error) {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
