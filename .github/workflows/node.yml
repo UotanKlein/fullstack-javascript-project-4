@@ -1,7 +1,9 @@
-name: Node CI
+name: CodeClimate Analysis
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 env:
@@ -13,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x] # Обновлено для поддержки fs/promises
+        node-version: [14.x, 16.x]
 
     steps:
       - name: Check-out repository
@@ -32,12 +34,12 @@ jobs:
         run: npm test
 
       - name: Generate coverage report
-        run: npm run coverage # Убедитесь, что скрипт "coverage" определен в вашем package.json
+        run: npm run coverage
 
       - name: Test & publish code coverage
         uses: paambaati/codeclimate-action@v4.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: npm run coverage # Используйте команду, определенную в package.json
+          coverageCommand: npm run coverage
           debug: true
