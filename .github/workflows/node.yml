@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [16.x]
 
     steps:
       - name: Check-out repository
@@ -33,20 +33,8 @@ jobs:
       - name: Install codeclimate-test-reporter
         run: npm install -g codeclimate-test-reporter
 
-      - name: Run CodeClimate Analysis
-        run: |
-          codeclimate-test-reporter format-coverage --input-type lcov coverage/lcov.info | codeclimate-test-reporter upload-coverage
-
       - name: Run test
         run: npm test
 
       - name: Generate coverage report
         run: npm run coverage
-
-      - name: Test & publish code coverage
-        uses: paambaati/codeclimate-action@v4.0.0
-        env:
-          CODECLIMATE_REPO_TOKEN: ${{ secrets.CODECLIMATE_REPO_TOKEN }}
-        with:
-          coverageCommand: npm run coverage
-
