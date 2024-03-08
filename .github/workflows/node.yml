@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x, 16.x] # Обновлено для поддержки fs/promises
 
     steps:
       - name: Check-out repository
@@ -25,19 +25,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Make dependencies
-        run: make dependencies
+      - name: Install dependencies
+        run: npm install
 
-      - name: Make test
-        run: make test
+      - name: Run tests
+        run: npm test
 
       - name: Generate coverage report
-        run: make coverage
+        run: npm run coverage # Убедитесь, что скрипт "coverage" определен в вашем package.json
 
       - name: Test & publish code coverage
         uses: paambaati/codeclimate-action@v4.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: make coverage
+          coverageCommand: npm run coverage # Используйте команду, определенную в package.json
           debug: true

@@ -12,7 +12,7 @@ lint-fix:
 	npx eslint --fix .
 
 coverage:
-	npm run test -- --coverage
+	npm run coverage
 
 dependencies:
 	npm install
