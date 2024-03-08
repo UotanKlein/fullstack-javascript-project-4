@@ -22,6 +22,10 @@ export default class PageLoader {
     this.outputPath = outputPath;
     this.cb = cb;
     this.logs = new Logs(outputPath);
+
+    if (!funcs.isValidUrl(this.link)) {
+      throw new Error(`URL '${this.link}' is invalid.`);
+    }
   }
 
   setCB(cb) {
@@ -29,7 +33,9 @@ export default class PageLoader {
   }
 
   readHTML() {
-    const htmlPromise = axios.get(this.link).then((res) => res.data);
+    const htmlPromise = axios.get(this.link).then((res) => res.data).catch((error) => {
+      throw error;
+    });
     this.htmlPromise = htmlPromise;
     return htmlPromise;
   }
@@ -48,7 +54,9 @@ export default class PageLoader {
             const extension = funcs.getExtensionByContentType(contentType);
             ctx.extension = extension;
 
-            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
+            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data).catch((error) => {
+              throw error;
+            });
           })
           .then(() => {
             // eslint-disable-next-line no-param-reassign
@@ -57,7 +65,7 @@ export default class PageLoader {
           })
           .catch((error) => {
             this.logs.addLog(`An error occurred while uploading the web asset from '${url}' Error: ${error.message}`);
-            throw new Error(`Failed to download web asset from ${url}. Error: ${error.message}`);
+            throw error;
           }),
       },
     ], {
@@ -125,6 +133,10 @@ export default class PageLoader {
         const $ = cheerio.load(content);
         const contentPromises = [];
 
+        fsp.mkdir(path.join(this.outputPath, this.contentPath), { recursive: true }).catch((error) => {
+          throw error;
+        });
+
         const processElement = (element, attributeName, resourceType = 'default') => {
           const url = $(element).attr(attributeName);
           const pathNameUrl = funcs.getAbsolute(url, this.link);
@@ -145,7 +157,12 @@ export default class PageLoader {
 
           promise.then((ctx) => {
             $(element).attr(attributeName, `${filePath}.${ctx.extension}`);
+            this.cb(null);
             return ctx;
+          }).catch((error) => {
+            this.logs.addLog(`An error occurred during the page download process: '${this.link}' Error: ${error}`);
+            this.cb(error);
+            throw error;
           });
 
           contentPromises.push(promise);
@@ -155,16 +172,16 @@ export default class PageLoader {
         $('script').each((index, element) => processElement(element, 'src'));
         $('link').each((index, element) => processElement(element, 'href', 'style'));
 
-        return Promise.all(contentPromises).then(() => $.html());
+        return Promise.all(contentPromises).then(() => $.html()).catch((error) => {
+          throw error;
+        });
       })
       .then((updatedHtml) => {
         this.logs.addLog(`The page content was saved successfully: '${this.link}'`);
         this.saveHTML(updatedHtml);
-        this.cb(null);
       })
       .catch((error) => {
         this.logs.addLog(`An error occurred while uploading the page content: '${this.link}' Error: ${error}`);
-        this.cb(error);
         throw error;
       });
   }
@@ -175,8 +192,6 @@ export default class PageLoader {
     const convertLink = funcs.convertLinkToFileName(this.link);
     this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
     this.contentPath = `${convertLink}_files`;
-
-    await fsp.mkdir(path.join(this.outputPath, this.contentPath), { recursive: true });
 
     this.requestInterceptor = axios.interceptors.request.use((request) => {
       this.logs.addLog(`Request: ${request.method.toUpperCase()} ${request.url}`);
@@ -227,8 +242,8 @@ export default class PageLoader {
       renderer: 'default',
     });
 
-    return tasks.run().catch((err) => {
-      console.error(err);
+    return tasks.run().catch((error) => {
+      console.error(error);
       throw error;
     });
   }

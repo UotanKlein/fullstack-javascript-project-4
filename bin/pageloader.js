@@ -10,11 +10,14 @@ program
   .description('Something script for download pages')
   .option('-o, --output [dir]', 'output dir', process.cwd())
   .arguments('<link>')
-  .action((link) => {
+  .action(async (link) => {
     const options = program.opts();
-    const filePath = pageLoader(link, options.output)
-    console.log(filePath);
-    return filePath;
+    try {
+      pageLoader(link, options.output)
+    } catch(error) {
+      console.error(error.message);
+      process.exit(1);
+    }
   });
 
 program.parse(process.argv);

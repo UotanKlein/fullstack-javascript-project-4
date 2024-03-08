@@ -66,7 +66,7 @@ funcs.ensureDirExists = async (dirPath) => Promise.resolve()
   .then(() => fsp.mkdir(dirPath, { recursive: true }))
   .catch((error) => {
     console.error(`Failed to create directory: ${error.message}`);
-    process.exit(1);
+    throw error;
   });
 
 funcs.getAbsolute = (url, baseUrl) => {
@@ -83,5 +83,14 @@ funcs.convertLinkToFileName = (link) => {
   const fileName = link.split('?')[0];
   return fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
 };
+
+funcs.isValidUrl = (string) => {
+  try {
+    new URL(string);
+    return true;
+  } catch (error) {
+    throw error;
+  }
+}
 
 export default funcs;

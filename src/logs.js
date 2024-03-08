@@ -29,10 +29,10 @@ export default class Logs {
   constructor(savePath) {
     const logsDir = path.join(savePath, 'logs');
 
-    fs.mkdir(logsDir, { recursive: true }, (err) => {
-      if (err) {
-        console.error('Error creating the logs directory:', err);
-        process.exit(1);
+    fs.mkdir(logsDir, { recursive: true }, (error) => {
+      if (error) {
+        console.error('Error creating the logs directory:', error);
+        throw error;
       }
     });
 
@@ -53,7 +53,7 @@ export default class Logs {
       await fsp.writeFile(path.join(this.savePath, `${logName}-${getCurrentTimeStringForFile()}.log`), this.toString(), 'utf8');
     } catch (error) {
       console.error('Error reading the directory or saving the logs:', error);
-      process.exit(1);
+      throw error;
     }
   }
 
