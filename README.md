@@ -10,5 +10,5 @@
 ### Codecov
 [![codecov](https://codecov.io/gh/UotanKlein/fullstack-javascript-project-4/graph/badge.svg?token=6yKMZwMis4)](https://codecov.io/gh/UotanKlein/fullstack-javascript-project-4)
 
-<!-- # Аскинема
-[![asciicast](https://asciinema.org/a/q6zR336jdrsaiG3rx3YJuc5Cv.svg)](https://asciinema.org/a/q6zR336jdrsaiG3rx3YJuc5Cv) -->
+# Аскинема
+[![asciicast](https://asciinema.org/a/nqOIW6yuWHFwKG3mvOybYmmkJ.svg)](https://asciinema.org/a/nqOIW6yuWHFwKG3mvOybYmmkJ)
