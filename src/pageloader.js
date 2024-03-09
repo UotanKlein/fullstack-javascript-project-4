@@ -209,6 +209,7 @@ export default class PageLoader {
       {
         title: 'Downloading page...',
         task: (ctx, task) => this.readHTML()
+          .then((htmlContent) => this.saveHTML(htmlContent))
           .then(() => this.downloadContent())
           .then(() => {
             // eslint-disable-next-line no-param-reassign
@@ -253,9 +254,8 @@ export default class PageLoader {
       parser: 'html',
     }).then((convertedHtml) => {
       const normalizedHtml = convertedHtml.replace(/\\/g, '/');
-      fsp.writeFile(this.htmlPath, normalizedHtml);
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
-      return normalizedHtml;
+      return fsp.writeFile(this.htmlPath, normalizedHtml);
     }).catch((error) => {
       this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
       this.cb(error);

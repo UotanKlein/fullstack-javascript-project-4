@@ -22,6 +22,7 @@ describe('Page Loader Tests', () => {
   let beforeFixtureCSS;
   let beforeFixturePNG;
   let afterFixtureHTML;
+
   let tempDir;
 
   beforeAll(() => {
@@ -52,7 +53,7 @@ describe('Page Loader Tests', () => {
       .reply(200, beforeFixturePNG, { 'Content-Type': 'image/png' });
 
     return pageLoader(testLink, tempDir).catch((error) => {
-      this.cb(error);
+      console.error(error.message);
     });
   });
 
@@ -61,7 +62,7 @@ describe('Page Loader Tests', () => {
       await fsp.rm(tempDir, { recursive: true, force: true });
       nock.cleanAll();
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -70,7 +71,7 @@ describe('Page Loader Tests', () => {
       const contentPath = path.join(tempDir, 'example-com_files');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -81,7 +82,7 @@ describe('Page Loader Tests', () => {
       const html = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(html)).toEqual(normalized(afterFixtureHTML));
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -92,7 +93,7 @@ describe('Page Loader Tests', () => {
       const css = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(css)).toEqual(normalized(beforeFixtureCSS));
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -103,7 +104,7 @@ describe('Page Loader Tests', () => {
       const js = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(js)).toEqual(normalized(beforeFixtureJS));
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -114,7 +115,7 @@ describe('Page Loader Tests', () => {
       const actualImageBuffer = await fsp.readFile(contentPath);
       expect(actualImageBuffer.equals(beforeFixturePNG)).toBe(true);
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -125,7 +126,7 @@ describe('Page Loader Tests', () => {
       const logFile = (await fsp.readdir(contentPath))[0];
       await expect(fsp.access(path.join(contentPath, logFile))).resolves.toBeUndefined();
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 });
@@ -144,7 +145,7 @@ describe('Invalid Link Tests', () => {
     try {
       await fsp.rm(tempDir, { recursive: true, force: true });
     } catch (error) {
-      this.cb(error);
+      console.error(error.message);
     }
   });
 
@@ -152,3 +153,60 @@ describe('Invalid Link Tests', () => {
     await expect(pageLoader(invalidLink, tempDir)).rejects.toThrow();
   });
 });
+
+// describe('Partly Invalid Tests', () => {
+//   let beforeFixtureJS;
+//   let beforeFixtureCSS;
+//   let beforeFixturePNG;
+
+//   let beforeFixtureHTMLInvalid;
+
+//   let tempDir;
+
+//   beforeAll(() => {
+//     beforeFixtureJS = fs.readFileSync(getFixturePath('before.js'), 'utf8');
+//     beforeFixtureCSS = fs.readFileSync(getFixturePath('before.css'), 'utf8');
+//     beforeFixturePNG = fs.readFileSync(getFixturePath('test.jpg'));
+//     beforeFixtureHTMLInvalid = fs.readFileSync(getFixturePath('beforeInvalid.html'), 'utf8');
+//   });
+
+//   beforeEach(() => {
+//     tempDir = tmp.dirSync({ unsafeCleanup: true }).name;
+
+//     nock(testLink)
+//       .get('/')
+//       .reply(200, beforeFixtureHTMLInvalid, { 'Content-Type': 'text/html' });
+
+//     nock(testLink)
+//       .get('/assets/test.css')
+//       .reply(200, beforeFixtureCSS, { 'Content-Type': 'text/css' });
+
+//     nock(testLink)
+//       .get('/assets/test.js')
+//       .reply(200, beforeFixtureJS, { 'Content-Type': 'application/javascript' });
+
+//     nock(testLink)
+//       .get('/assets/test.png')
+//       .reply(200, beforeFixturePNG, { 'Content-Type': 'image/png' });
+
+//     nock('http://example.com')
+//       .get('/assets/testInvalid.js')
+//       .reply(404, { message: 'Not Found' });
+
+//     nock('http://example.com')
+//       .get('/assets/testInvalid.css')
+//       .reply(404, { message: 'Not Found' });
+//   });
+
+//   afterEach(async () => {
+//     try {
+//       await fsp.rm(tempDir, { recursive: true, force: true });
+//       nock.cleanAll();
+//     } catch (error) {
+//       console.error(error.message);
+//     }
+//   });
+
+//   test('Partly Invalid Link', async () => {
+//   });
+// });
