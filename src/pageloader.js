@@ -96,7 +96,12 @@ export default class PageLoader {
           .then(() => axios.get(imageUrl, { responseType: 'stream' }))
           .then((response) => {
             const contentType = response.headers['content-type'];
-            const extension = funcs.getExtensionByContentType(contentType);
+            let extension;
+            if (contentType) {
+              extension = funcs.getExtensionByContentType(contentType);
+            } else {
+              extension = funcs.getFileExtension(imageUrl);
+            }
             ctx.extension = extension;
 
             return funcs.pipelinePromise(response.data, fs.createWriteStream(path.join(this.outputPath, `${imagePath}.${extension}`)));

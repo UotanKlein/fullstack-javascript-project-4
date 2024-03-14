@@ -7,8 +7,6 @@ const funcs = {};
 funcs.pipelinePromise = promisify(pipeline);
 
 funcs.getExtensionByContentType = (contentType) => {
-  console.log(contentType);
-
   const mimeType = contentType.split(';')[0];
 
   const mappings = {
@@ -48,6 +46,14 @@ funcs.getExtensionByContentType = (contentType) => {
   };
 
   return mappings[mimeType] || 'bin';
+};
+
+funcs.getFileExtension = (url) => {
+  const lastSegment = url.split('/').pop();
+  if (lastSegment && lastSegment.includes('.')) {
+    return lastSegment.split('.').pop();
+  }
+  return '';
 };
 
 funcs.compareDomainAndSubdomains = (url1, url2) => {
