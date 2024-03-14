@@ -31,7 +31,7 @@ export default class Logs {
 
     fs.mkdir(logsDir, { recursive: true }, (error) => {
       if (error) {
-        this.cb(error);
+        console.error(error);
       }
     });
 
@@ -49,7 +49,7 @@ export default class Logs {
 
   saveLogs(logName = 'log') {
     fsp.writeFile(path.join(this.savePath, `${logName}-${getCurrentTimeStringForFile()}.log`), this.toString(), 'utf8').catch((error) => {
-      this.cb(error);
+      console.error(error);
     });
   }
 

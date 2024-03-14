@@ -65,7 +65,7 @@ funcs.compareDomainAndSubdomains = (url1, url2) => {
 funcs.ensureDirExists = (dirPath) => Promise.resolve()
   .then(() => fsp.mkdir(dirPath, { recursive: true }))
   .catch((error) => {
-    this.cb(error);
+    console.error(error);
   });
 
 funcs.getAbsolute = (url, baseUrl) => {

@@ -7,8 +7,6 @@ import { jest } from '@jest/globals';
 import { fileURLToPath } from 'url';
 import pageLoader from '../index.js';
 
-nock.disableNetConnect();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const testLink = 'http://example.com';
@@ -33,6 +31,12 @@ describe('Page Loader Tests', () => {
     beforeFixtureCSS = fs.readFileSync(getFixturePath('before.css'), 'utf8');
     beforeFixturePNG = fs.readFileSync(getFixturePath('test.jpg'));
     afterFixtureHTML = fs.readFileSync(getFixturePath('after.html'), 'utf8');
+
+    nock.disableNetConnect();
+  });
+
+  afterAll(() => {
+    nock.enableNetConnect();
   });
 
   beforeEach(() => {
