@@ -9,7 +9,7 @@ import pageLoader from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const testLink = 'https://ru.hexlet.io/courses';
+const testLink = 'https://ru.hexlet.io';
 const invalidLink = 'http://exampleinvalidlink.com';
 
 const getFixturePath = (fixtureFile) => path.join(path.resolve(__dirname, '..'), '__fixtures__', fixtureFile);
@@ -78,7 +78,7 @@ describe('Page Loader Tests', () => {
 
   test('Structure', async () => {
     try {
-      const contentPath = path.join(tempDir, 'example-com_files');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io_files');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
     } catch (error) {
       console.error(error.message);
@@ -87,7 +87,7 @@ describe('Page Loader Tests', () => {
 
   test('HTML', async () => {
     try {
-      const contentPath = path.join(tempDir, 'example-com.html');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io.html');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
       const html = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(html)).toEqual(normalized(afterFixtureHTML));
@@ -98,7 +98,7 @@ describe('Page Loader Tests', () => {
 
   test('CSS', async () => {
     try {
-      const contentPath = path.join(tempDir, 'ru-hexlet-io-courses_files', 'ru-hexlet-io-assets-application.css');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io_files', 'ru-hexlet-io-assets-application.css');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
       const css = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(css)).toEqual(normalized(beforeFixtureCSS));
@@ -109,7 +109,7 @@ describe('Page Loader Tests', () => {
 
   test('JS', async () => {
     try {
-      const contentPath = path.join(tempDir, 'example-com_files', 'example-com-assets-test.js');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io_files', 'ru-hexlet-io-packs-js-runtime.js');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
       const js = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(js)).toEqual(normalized(beforeFixtureJS));
@@ -120,7 +120,7 @@ describe('Page Loader Tests', () => {
 
   test('PNG', async () => {
     try {
-      const contentPath = path.join(tempDir, 'example-com_files', 'example-com-assets-test.png');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io_files', 'ru-hexlet-io-assets-professions-nodejs.png');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
       const actualImageBuffer = await fsp.readFile(contentPath);
       expect(actualImageBuffer.equals(beforeFixturePNG)).toBe(true);
@@ -163,60 +163,3 @@ describe('Invalid Link Tests', () => {
     await expect(pageLoader(invalidLink, tempDir)).rejects.toThrow();
   });
 });
-
-// describe('Partly Invalid Tests', () => {
-//   let beforeFixtureJS;
-//   let beforeFixtureCSS;
-//   let beforeFixturePNG;
-
-//   let beforeFixtureHTMLInvalid;
-
-//   let tempDir;
-
-//   beforeAll(() => {
-//     beforeFixtureJS = fs.readFileSync(getFixturePath('before.js'), 'utf8');
-//     beforeFixtureCSS = fs.readFileSync(getFixturePath('before.css'), 'utf8');
-//     beforeFixturePNG = fs.readFileSync(getFixturePath('test.jpg'));
-//     beforeFixtureHTMLInvalid = fs.readFileSync(getFixturePath('beforeInvalid.html'), 'utf8');
-//   });
-
-//   beforeEach(() => {
-//     tempDir = tmp.dirSync({ unsafeCleanup: true }).name;
-
-//     nock(testLink)
-//       .get('/')
-//       .reply(200, beforeFixtureHTMLInvalid, { 'Content-Type': 'text/html' });
-
-//     nock(testLink)
-//       .get('/assets/test.css')
-//       .reply(200, beforeFixtureCSS, { 'Content-Type': 'text/css' });
-
-//     nock(testLink)
-//       .get('/assets/test.js')
-//       .reply(200, beforeFixtureJS, { 'Content-Type': 'application/javascript' });
-
-//     nock(testLink)
-//       .get('/assets/test.png')
-//       .reply(200, beforeFixturePNG, { 'Content-Type': 'image/png' });
-
-//     nock('http://example.com')
-//       .get('/assets/testInvalid.js')
-//       .reply(404, { message: 'Not Found' });
-
-//     nock('http://example.com')
-//       .get('/assets/testInvalid.css')
-//       .reply(404, { message: 'Not Found' });
-//   });
-
-//   afterEach(async () => {
-//     try {
-//       await fsp.rm(tempDir, { recursive: true, force: true });
-//       nock.cleanAll();
-//     } catch (error) {
-//       console.error(error.message);
-//     }
-//   });
-
-//   test('Partly Invalid Link', async () => {
-//   });
-// });

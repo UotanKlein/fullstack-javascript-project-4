@@ -93,7 +93,6 @@ export default class PageLoader {
 
   downloadAndSaveBinary(url, imagePath) {
     const dirPath = path.dirname(imagePath);
-    console.log(url);
     const tasks = new Listr([
       {
         title: `Downloading image from ${url}`,
@@ -262,11 +261,11 @@ export default class PageLoader {
   saveHTML(content) {
     return prettier.format(content, {
       parser: 'html',
-      htmlWhitespaceSensitivity: 'ignore',
-      printWidth: 120,
-      proseWrap: 'never',
-      doctype: 'uppercase',
-      vueIndentScriptAndStyle: true,
+      // htmlWhitespaceSensitivity: 'ignore',
+      // printWidth: 120,
+      // proseWrap: 'never',
+      // doctype: 'uppercase',
+      // vueIndentScriptAndStyle: true,
     }).then((convertedHtml) => {
       const normalizedHtml = convertedHtml.replace(/\\/g, '/');
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
