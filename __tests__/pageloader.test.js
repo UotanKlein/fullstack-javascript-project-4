@@ -44,7 +44,7 @@ describe('Page Loader Tests', () => {
 
     nock(testLink)
       .get('/assets/test.css')
-      .reply(200, beforeFixtureCSS, { 'Content-Type': 'text/css' });
+      .reply(200, beforeFixtureCSS);
 
     nock(testLink)
       .get('/assets/test.js')

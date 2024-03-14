@@ -56,7 +56,12 @@ export default class PageLoader {
             }
 
             const contentType = response.headers['content-type'];
-            const extension = funcs.getExtensionByContentType(contentType);
+            let extension;
+            if (contentType) {
+              extension = funcs.getExtensionByContentType(contentType);
+            } else {
+              extension = funcs.getFileExtension(url);
+            }
             ctx.extension = extension;
 
             return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
