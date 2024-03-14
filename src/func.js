@@ -49,17 +49,11 @@ funcs.getExtensionByContentType = (contentType) => {
 };
 
 funcs.compareDomainAndSubdomains = (url1, url2) => {
-  const getRootDomain = (url) => {
-    const { hostname } = new URL(url);
-    const hostnameParts = hostname.split('.').reverse();
-
-    if (hostnameParts.length >= 2) {
-      return `${hostnameParts[1]}.${hostnameParts[0]}`;
-    }
-    return hostname;
+  const getHostname = (url) => {
+    return new URL(url).hostname;
   };
 
-  return getRootDomain(url1) === getRootDomain(url2);
+  return getHostname(url1) === getHostname(url2);
 };
 
 funcs.ensureDirExists = (dirPath) => Promise.resolve()
