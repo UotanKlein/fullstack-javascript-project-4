@@ -7,7 +7,7 @@ import { jest } from '@jest/globals';
 import { fileURLToPath } from 'url';
 import pageLoader from '../index.js';
 
-nock.disableNetConnect()
+nock.disableNetConnect();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

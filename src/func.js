@@ -7,6 +7,8 @@ const funcs = {};
 funcs.pipelinePromise = promisify(pipeline);
 
 funcs.getExtensionByContentType = (contentType) => {
+  console.log(contentType);
+
   const mimeType = contentType.split(';')[0];
 
   const mappings = {
@@ -49,9 +51,7 @@ funcs.getExtensionByContentType = (contentType) => {
 };
 
 funcs.compareDomainAndSubdomains = (url1, url2) => {
-  const getHostname = (url) => {
-    return new URL(url).hostname;
-  };
+  const getHostname = (url) => new URL(url).hostname;
 
   return getHostname(url1) === getHostname(url2);
 };
