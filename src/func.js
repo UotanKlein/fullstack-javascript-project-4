@@ -42,6 +42,7 @@ funcs.getExtensionByContentType = (contentType) => {
     'application/zip': 'zip',
     'application/vnd.rar': 'rar',
     'application/x-7z-compressed': '7z',
+    'application/opensearchdescription+xml': 'xml',
     'application/octet-stream': 'bin',
   };
 
@@ -71,6 +72,7 @@ funcs.ensureDirExists = (dirPath) => Promise.resolve()
 funcs.getAbsolute = (url, baseUrl) => {
   try {
     const fullUrl = new URL(url, baseUrl);
+    console.log(fullUrl.href);
     return fullUrl.href;
   } catch (error) {
     console.error(`Ошибка при обработке URL: ${error}`);

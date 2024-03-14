@@ -91,35 +91,35 @@ export default class PageLoader {
     });
   }
 
-  downloadAndSaveImage(imageUrl, imagePath) {
+  downloadAndSaveBinary(url, imagePath) {
     const dirPath = path.dirname(imagePath);
-
+    console.log(url);
     const tasks = new Listr([
       {
-        title: `Downloading image from ${imageUrl}`,
+        title: `Downloading image from ${url}`,
         task: (ctx, task) => funcs.ensureDirExists(path.join(this.outputPath, dirPath))
-          .then(() => axios.get(imageUrl, { responseType: 'stream' }))
+          .then(() => axios.get(url, { responseType: 'stream' }))
           .then((response) => {
             const contentType = response.headers['content-type'];
             let extension;
             if (contentType) {
               extension = funcs.getExtensionByContentType(contentType);
             } else {
-              extension = funcs.getFileExtension(imageUrl);
+              extension = funcs.getFileExtension(url);
             }
             ctx.extension = extension;
 
             return funcs.pipelinePromise(response.data, fs.createWriteStream(path.join(this.outputPath, `${imagePath}.${extension}`)));
           })
           .then(() => {
-            this.logs.addLog(`Image was uploaded successfully from '${imageUrl}'`);
+            this.logs.addLog(`Image was uploaded successfully from '${url}'`);
             // eslint-disable-next-line no-param-reassign
-            task.title = `Image downloaded successfully from ${imageUrl}`;
+            task.title = `Image downloaded successfully from ${url}`;
           })
           .catch((error) => {
-            this.logs.addLog(`An error occurred while uploading the image from '${imageUrl}' Error: ${error.message}`);
+            this.logs.addLog(`An error occurred while uploading the image from '${url}' Error: ${error.message}`);
             // eslint-disable-next-line no-param-reassign
-            task.title = `Failed to download image from ${imageUrl}`;
+            task.title = `Failed to download image from ${url}`;
             this.cb(error);
           }),
       },
@@ -150,7 +150,7 @@ export default class PageLoader {
           const url = $(element).attr(attributeName);
           const pathNameUrl = funcs.getAbsolute(url, this.link);
 
-          if (!url || !funcs.compareDomainAndSubdomains(this.link, pathNameUrl) || (resourceType === 'style' && $(element).attr('rel') !== 'stylesheet')) return;
+          if (!url || !funcs.compareDomainAndSubdomains(this.link, pathNameUrl)) return;
 
           const splitUrl = pathNameUrl.split('.');
           splitUrl.pop();
@@ -159,7 +159,7 @@ export default class PageLoader {
 
           let promise;
           if (resourceType === 'image') {
-            promise = this.downloadAndSaveImage(pathNameUrl, filePath);
+            promise = this.downloadAndSaveBinary(pathNameUrl, filePath);
           } else {
             promise = this.downloadAndSave(pathNameUrl, filePath);
           }
@@ -265,6 +265,8 @@ export default class PageLoader {
       htmlWhitespaceSensitivity: 'ignore',
       printWidth: 120,
       proseWrap: 'never',
+      doctype: 'uppercase',
+      vueIndentScriptAndStyle: true,
     }).then((convertedHtml) => {
       const normalizedHtml = convertedHtml.replace(/\\/g, '/');
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);

@@ -9,7 +9,7 @@ import pageLoader from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const testLink = 'http://example.com';
+const testLink = 'https://ru.hexlet.io/courses';
 const invalidLink = 'http://exampleinvalidlink.com';
 
 const getFixturePath = (fixtureFile) => path.join(path.resolve(__dirname, '..'), '__fixtures__', fixtureFile);
@@ -47,16 +47,20 @@ describe('Page Loader Tests', () => {
       .reply(200, beforeFixtureHTML, { 'Content-Type': 'text/html' });
 
     nock(testLink)
-      .get('/assets/test.css')
-      .reply(200, beforeFixtureCSS);
+      .get('/courses')
+      .reply(200, beforeFixtureHTML, { 'Content-Type': 'text/html' });
 
     nock(testLink)
-      .get('/assets/test.js')
-      .reply(200, beforeFixtureJS, { 'Content-Type': 'application/javascript' });
+      .get('/assets/application.css')
+      .reply(200, beforeFixtureCSS, { 'Content-Type': 'text/css' });
 
     nock(testLink)
-      .get('/assets/test.png')
+      .get('/assets/professions/nodejs.png')
       .reply(200, beforeFixturePNG, { 'Content-Type': 'image/png' });
+
+    nock(testLink)
+      .get('/packs/js/runtime.js')
+      .reply(200, beforeFixtureJS, { 'Content-Type': 'application/javascript' });
 
     return pageLoader(testLink, tempDir).catch((error) => {
       console.error(error.message);
@@ -94,7 +98,7 @@ describe('Page Loader Tests', () => {
 
   test('CSS', async () => {
     try {
-      const contentPath = path.join(tempDir, 'example-com_files', 'example-com-assets-test.css');
+      const contentPath = path.join(tempDir, 'ru-hexlet-io-courses_files', 'ru-hexlet-io-assets-application.css');
       await expect(fsp.access(contentPath)).resolves.toBeUndefined();
       const css = await fsp.readFile(contentPath, 'utf-8');
       expect(normalized(css)).toEqual(normalized(beforeFixtureCSS));
