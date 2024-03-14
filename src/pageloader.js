@@ -262,6 +262,9 @@ export default class PageLoader {
   saveHTML(content) {
     return prettier.format(content, {
       parser: 'html',
+      htmlWhitespaceSensitivity: 'ignore',
+      printWidth: 120,
+      proseWrap: 'never',
     }).then((convertedHtml) => {
       const normalizedHtml = convertedHtml.replace(/\\/g, '/');
       this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);

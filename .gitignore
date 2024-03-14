@@ -3,3 +3,5 @@ logs/
 *_files
 coverage/
 /*.html
+testaboba.js
+testhtmlaboba.html
