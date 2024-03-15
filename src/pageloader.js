@@ -9,14 +9,9 @@ import Logs from './logs.js';
 import funcs from './func.js';
 
 export default class PageLoader {
-  constructor(link, outputPath, cb = (error, exit = false) => {
+  constructor(link, outputPath, cb = (error) => {
     if (error) {
-      console.error(error.message);
-      if (exit) {
-        process.exit(1);
-      } else {
-        throw error;
-      }
+      process.exit(1);
     }
   }) {
     this.link = link;
@@ -262,7 +257,7 @@ export default class PageLoader {
     return prettier.format(content, {
       parser: 'html',
       // htmlWhitespaceSensitivity: 'ignore',
-      // printWidth: 120,
+      printWidth: 60,
       // proseWrap: 'never',
       // doctype: 'uppercase',
       // vueIndentScriptAndStyle: true,
