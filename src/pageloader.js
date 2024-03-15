@@ -261,8 +261,8 @@ export default class PageLoader {
   saveHTML(content) {
     return prettier.format(content, {
       parser: 'html',
-      // htmlWhitespaceSensitivity: 'ignore',
-      printWidth: 60,
+      htmlWhitespaceSensitivity: 'ignore',
+      printWidth: 40,
       // proseWrap: 'never',
       // doctype: 'uppercase',
       // vueIndentScriptAndStyle: true,
