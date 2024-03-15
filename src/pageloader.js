@@ -9,9 +9,14 @@ import Logs from './logs.js';
 import funcs from './func.js';
 
 export default class PageLoader {
-  constructor(link, outputPath, cb = (error) => {
+  constructor(link, outputPath, cb = (error, status = false) => {
     if (error) {
-      process.exit(1);
+      if (status) {
+        process.exit(1);
+      } else {
+        console.log(error.message);
+        throw error;
+      }
     }
   }) {
     this.link = link;
