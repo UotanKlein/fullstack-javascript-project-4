@@ -5,8 +5,11 @@ import fsp from 'fs/promises';
 import cheerio from 'cheerio';
 import path from 'path';
 import prettier from 'prettier';
+import debug from 'debug';
 import Logs from './logs.js';
 import funcs from './func.js';
+
+const log = debug('page-loader');
 
 export default class PageLoader {
   constructor(link, outputPath, cb = (error, status = false) => {
@@ -70,6 +73,7 @@ export default class PageLoader {
             // eslint-disable-next-line no-param-reassign
             task.title = `Web asset downloaded successfully from ${url}`;
             this.logs.addLog(`Web asset was uploaded successfully from '${url}'`);
+            log(`Web asset downloaded successfully from ${url}`);
           })
           .catch((error) => {
             this.logs.addLog(`An error occurred while uploading the web asset from '${url}' Error: ${error.message}`);
@@ -259,20 +263,20 @@ export default class PageLoader {
   }
 
   saveHTML(content) {
-    return prettier.format(content, {
+    const prettierOptions = {
       parser: 'html',
       htmlWhitespaceSensitivity: 'ignore',
-      printWidth: 40,
-      // proseWrap: 'never',
-      // doctype: 'uppercase',
-      // vueIndentScriptAndStyle: true,
-    }).then((convertedHtml) => {
-      const normalizedHtml = convertedHtml.replace(/\\/g, '/');
-      this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
-      return fsp.writeFile(this.htmlPath, normalizedHtml);
-    }).catch((error) => {
-      this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
-      this.cb(error);
-    });
+      printWidth: 60,
+    };
+    return prettier.format(content, prettierOptions)
+      .then((formattedHtml) => {
+        const normalizedHtml = formattedHtml.replace(/\\/g, '/');
+        this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
+        return fsp.writeFile(this.htmlPath, normalizedHtml);
+      })
+      .catch((error) => {
+        this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
+        this.cb(error);
+      });
   }
 }
