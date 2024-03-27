@@ -263,6 +263,7 @@ export default class PageLoader {
   }
 
   saveHTML(content) {
+    console.log(`Content before formatting: ${content}`);
     const prettierOptions = {
       parser: 'html',
       htmlWhitespaceSensitivity: 'ignore',
