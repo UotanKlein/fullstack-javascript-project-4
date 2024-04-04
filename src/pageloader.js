@@ -66,6 +66,7 @@ export default class PageLoader {
               extension = funcs.getFileExtension(url);
             }
             ctx.extension = extension;
+            console.log(`HaHeHu: ${url}`)
             console.log(`Aboba: ${response.data}`)
             console.log(`Biba: ${savePath}`);
             console.log(`FFF: ${extension}`);
