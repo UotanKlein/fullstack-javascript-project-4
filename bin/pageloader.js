@@ -14,7 +14,6 @@ program
     const options = program.opts();
     pageLoader(link, options.output).then((ctx) => {
       console.log(`Page was successfully downloaded into '${options.output}'`);
-      console.log(ctx.htmlPath);
     }).catch((error) => {
       console.error(error.message);
       process.exit(1);

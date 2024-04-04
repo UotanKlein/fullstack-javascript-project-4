@@ -17,7 +17,7 @@ export default class PageLoader {
       if (status) {
         process.exit(1);
       } else {
-        console.log(error.message);
+        console.error(error.message);
         throw error;
       }
     }
@@ -39,6 +39,7 @@ export default class PageLoader {
   readHTML() {
     const htmlPromise = axios.get(this.link).then((res) => {
       this.cb(null);
+      console.log(res.data)
       return res.data;
     })
       .catch((error) => {
@@ -263,7 +264,6 @@ export default class PageLoader {
   }
 
   saveHTML(content) {
-    console.log(`Content before formatting: ${content}`);
     const prettierOptions = {
       parser: 'html',
       htmlWhitespaceSensitivity: 'ignore',
