@@ -6,7 +6,6 @@ import cheerio from 'cheerio';
 import path from 'path';
 import prettier from 'prettier';
 import debug from 'debug';
-import Logs from './logs.js';
 import funcs from './func.js';
 
 const log = debug('page-loader');
@@ -25,7 +24,6 @@ export default class PageLoader {
     this.link = link;
     this.outputPath = outputPath;
     this.cb = cb;
-    this.logs = new Logs(outputPath);
 
     if (!funcs.isValidUrl(this.link)) {
       throw new Error('Invalid link');
@@ -79,11 +77,9 @@ export default class PageLoader {
           .then(() => {
             // eslint-disable-next-line no-param-reassign
             task.title = `Web asset downloaded successfully from ${url}`;
-            this.logs.addLog(`Web asset was uploaded successfully from '${url}'`);
             log(`Web asset downloaded successfully from ${url}`);
           })
           .catch((error) => {
-            this.logs.addLog(`An error occurred while uploading the web asset from '${url}' Error: ${error.message}`);
             this.cb(error);
           }),
       },
@@ -122,12 +118,10 @@ export default class PageLoader {
             return funcs.pipelinePromise(response.data, fs.createWriteStream(path.join(this.outputPath, `${imagePath}.${extension}`)));
           })
           .then(() => {
-            this.logs.addLog(`Image was uploaded successfully from '${url}'`);
             // eslint-disable-next-line no-param-reassign
             task.title = `Image downloaded successfully from ${url}`;
           })
           .catch((error) => {
-            this.logs.addLog(`An error occurred while uploading the image from '${url}' Error: ${error.message}`);
             // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download image from ${url}`;
             this.cb(error);
@@ -198,38 +192,20 @@ export default class PageLoader {
           this.cb(error);
         });
       })
-      .then((updatedHtml) => {
-        this.logs.addLog(`The page content was saved successfully: '${this.link}'`);
-        return this.saveHTML(updatedHtml);
-      })
+      .then((updatedHtml) => this.saveHTML(updatedHtml))
       .catch((error) => {
-        this.logs.addLog(`An error occurred while uploading the page content: '${this.link}' Error: ${error}`);
         this.cb(error);
       });
   }
 
   downloadPage() {
-    this.logs.addLog(`The page ${this.link} has started loading.`);
-
     const convertLink = funcs.convertLinkToFileName(this.link);
     this.htmlPath = path.normalize(path.join(this.outputPath, `${convertLink}.html`));
     this.contentPath = `${convertLink}_files`;
 
-    this.requestInterceptor = axios.interceptors.request.use((request) => {
-      this.logs.addLog(`Request: ${request.method.toUpperCase()} ${request.url}`);
-      return request;
-    }, (error) => {
-      this.logs.addLog(`Request Error: ${error.message}`);
-      return Promise.reject(error);
-    });
+    this.requestInterceptor = axios.interceptors.request.use((request) => request, (error) => Promise.reject(error));
 
-    this.responseInterceptor = axios.interceptors.response.use((response) => {
-      this.logs.addLog(`Response: ${response.status} ${response.config.url}`);
-      return response;
-    }, (error) => {
-      this.logs.addLog(`Response Error: ${error.message}`);
-      return Promise.reject(error);
-    });
+    this.responseInterceptor = axios.interceptors.response.use((response) => response, (error) => Promise.reject(error));
 
     const tasks = new Listr([
       {
@@ -240,7 +216,6 @@ export default class PageLoader {
           .then(() => {
             // eslint-disable-next-line no-param-reassign
             task.title = `Page downloaded successfully from ${this.link}`;
-            this.logs.addLog(`Page was successfully downloaded into '${this.htmlPath}'`);
 
             axios.interceptors.request.eject(this.requestInterceptor);
             axios.interceptors.response.eject(this.responseInterceptor);
@@ -248,14 +223,10 @@ export default class PageLoader {
             ctx.htmlPath = this.htmlPath;
 
             this.cb(null);
-
-            return this.logs.saveLogs();
           })
           .catch((error) => {
             // eslint-disable-next-line no-param-reassign
             task.title = `Failed to download page from ${this.link}`;
-
-            this.logs.addLog(`Failed to download page from ${this.link}`);
 
             this.cb(error);
           }),
@@ -284,11 +255,9 @@ export default class PageLoader {
     return prettier.format(content, prettierOptions)
       .then((formattedHtml) => {
         const normalizedHtml = formattedHtml.replace(/\\/g, '/');
-        this.logs.addLog(`The HTML was saved successfully: '${this.link}'`);
         return fsp.writeFile(this.htmlPath, normalizedHtml);
       })
       .catch((error) => {
-        this.logs.addLog(`An error occurred during the html saved process: '${this.link}' Error: ${error.message}`);
         this.cb(error);
       });
   }
