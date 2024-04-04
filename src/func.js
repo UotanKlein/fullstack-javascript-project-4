@@ -80,11 +80,11 @@ funcs.getAbsolute = (url, baseUrl) => {
 };
 
 funcs.convertLinkToFileName = (link) => {
-  console.log(`ShadowFight: ${link}`)
+  console.log(`ShadowFight: ${link}`);
   const fileName = link.split('?')[0];
   console.log(`Puck: ${fileName}`);
   const result = fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
-  console.log(`TestTT: ${result}`)
+  console.log(`TestTT: ${result}`);
   return result;
 };
 

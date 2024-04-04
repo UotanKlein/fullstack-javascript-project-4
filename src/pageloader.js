@@ -60,17 +60,17 @@ export default class PageLoader {
 
             const contentType = response.headers['content-type'];
             let extension;
-            console.log(`fucktype: ${typeof contentType}`)
-            console.log(`afafafa: ${contentType === ''}`)
-            console.log(`TyTyPE: ${contentType}`)
+            console.log(`fucktype: ${typeof contentType}`);
+            console.log(`afafafa: ${contentType === ''}`);
+            console.log(`TyTyPE: ${contentType}`);
             if (contentType) {
               extension = funcs.getExtensionByContentType(contentType);
             } else {
               extension = funcs.getFileExtension(url);
             }
             ctx.extension = extension;
-            console.log(`HaHeHu: ${url}`)
-            console.log(`Aboba: ${response.data}`)
+            console.log(`HaHeHu: ${url}`);
+            console.log(`Aboba: ${response.data}`);
             console.log(`Biba: ${savePath}`);
             console.log(`FFF: ${extension}`);
 
@@ -162,13 +162,15 @@ export default class PageLoader {
 
           if (!url || !funcs.compareDomainAndSubdomains(this.link, pathNameUrl)) return;
 
-          console.log(`Pudge: ${pathNameUrl}`)
+          const lastPath = pathNameUrl.split('/');
+          const lastPath2 = lastPath.at(-1).split('.')[0];
+          lastPath.pop();
+          lastPath.push(lastPath2);
+          console.log(`Gay: ${lastPath.join('/')}`);
 
-          const splitUrl = pathNameUrl.split('.');
-          splitUrl.pop();
-          const fileName = `${funcs.convertLinkToFileName(splitUrl.join('.'))}`;
-          console.log(`Adik: ${this.contentPath}`)
-          console.log(`UotanKlein: ${fileName}`)
+          const fileName = `${funcs.convertLinkToFileName(lastPath.join('/'))}`;
+          console.log(`Adik: ${this.contentPath}`);
+          console.log(`FileName: ${fileName}`);
           const filePath = path.join(this.contentPath, fileName);
 
           let promise;
