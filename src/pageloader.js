@@ -39,7 +39,6 @@ export default class PageLoader {
   readHTML() {
     const htmlPromise = axios.get(this.link).then((res) => {
       this.cb(null);
-      console.log(res.data)
       return res.data;
     })
       .catch((error) => {
@@ -67,6 +66,9 @@ export default class PageLoader {
               extension = funcs.getFileExtension(url);
             }
             ctx.extension = extension;
+            console.log(response.data)
+            console.log(savePath);
+            console.log(extension);
 
             return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
           })
