@@ -162,9 +162,13 @@ export default class PageLoader {
 
           if (!url || !funcs.compareDomainAndSubdomains(this.link, pathNameUrl)) return;
 
+          console.log(`Pudge: ${pathNameUrl}`)
+
           const splitUrl = pathNameUrl.split('.');
           splitUrl.pop();
           const fileName = `${funcs.convertLinkToFileName(splitUrl.join('.'))}`;
+          console.log(`Adik: ${this.contentPath}`)
+          console.log(`UotanKlein: ${fileName}`)
           const filePath = path.join(this.contentPath, fileName);
 
           let promise;
