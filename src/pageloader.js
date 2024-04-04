@@ -16,7 +16,7 @@ export default class PageLoader {
       if (status) {
         process.exit(1);
       } else {
-        console.log(error.message);
+        console.error(error.message);
         throw error;
       }
     }
