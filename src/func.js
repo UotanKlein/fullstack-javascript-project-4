@@ -7,6 +7,10 @@ const funcs = {};
 funcs.pipelinePromise = promisify(pipeline);
 
 funcs.getExtensionByContentType = (contentType) => {
+  if (contentType === '') {
+    return 'html'
+  }
+
   const mimeType = contentType.split(';')[0];
 
   const mappings = {

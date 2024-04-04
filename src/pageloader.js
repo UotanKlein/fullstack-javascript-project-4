@@ -60,7 +60,7 @@ export default class PageLoader {
 
             const contentType = response.headers['content-type'];
             let extension;
-            if (contentType) {
+            if (contentType || contentType === '') {
               extension = funcs.getExtensionByContentType(contentType);
             } else {
               extension = funcs.getFileExtension(url);
