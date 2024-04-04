@@ -72,9 +72,7 @@ export default class PageLoader {
             console.log(`Biba: ${savePath}`);
             console.log(`FFF: ${extension}`);
 
-            const testData = extension === 'css' ? response.data.trim() : response.data;
-
-            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), testData);
+            return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
           })
           .then(() => {
             // eslint-disable-next-line no-param-reassign
