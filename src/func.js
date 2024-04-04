@@ -7,10 +7,6 @@ const funcs = {};
 funcs.pipelinePromise = promisify(pipeline);
 
 funcs.getExtensionByContentType = (contentType) => {
-  if (contentType === '') {
-    return 'html'
-  }
-
   const mimeType = contentType.split(';')[0];
 
   const mappings = {
@@ -58,7 +54,7 @@ funcs.getFileExtension = (url) => {
   if (lastSegment && lastSegment.includes('.')) {
     return lastSegment.split('.').pop();
   }
-  return '';
+  return 'html';
 };
 
 funcs.compareDomainAndSubdomains = (url1, url2) => {
