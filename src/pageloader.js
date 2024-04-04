@@ -62,6 +62,7 @@ export default class PageLoader {
             let extension;
             console.log(`fucktype: ${typeof contentType}`)
             console.log(`afafafa: ${contentType === ''}`)
+            console.log(`TyTyPE: ${contentType}`)
             if (contentType || contentType === '') {
               extension = funcs.getExtensionByContentType(contentType);
             } else {
