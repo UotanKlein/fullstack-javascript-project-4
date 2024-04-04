@@ -66,9 +66,9 @@ export default class PageLoader {
               extension = funcs.getFileExtension(url);
             }
             ctx.extension = extension;
-            console.log(response.data)
-            console.log(savePath);
-            console.log(extension);
+            console.log(`Aboba: ${response.data}`)
+            console.log(`Biba: ${savePath}`);
+            console.log(`FFF: ${extension}`);
 
             return fsp.writeFile(path.join(this.outputPath, `${savePath}.${extension}`), response.data);
           })
