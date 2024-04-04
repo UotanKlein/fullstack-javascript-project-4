@@ -60,6 +60,8 @@ export default class PageLoader {
 
             const contentType = response.headers['content-type'];
             let extension;
+            console.log(typeof contentType)
+            console.log(`afafafa: ${contentType === ''}`)
             if (contentType || contentType === '') {
               extension = funcs.getExtensionByContentType(contentType);
             } else {
