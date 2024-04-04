@@ -81,7 +81,10 @@ funcs.getAbsolute = (url, baseUrl) => {
 
 funcs.convertLinkToFileName = (link) => {
   const fileName = link.split('?')[0];
-  return fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
+  console.log(`Puck: ${fileName}`);
+  const result = fileName.replace(/^https?:\/\//, '').replace(/[^\w]/g, '-');
+  console.log(`TestTT: ${result}`)
+  return result;
 };
 
 funcs.isValidUrl = (string) => {
